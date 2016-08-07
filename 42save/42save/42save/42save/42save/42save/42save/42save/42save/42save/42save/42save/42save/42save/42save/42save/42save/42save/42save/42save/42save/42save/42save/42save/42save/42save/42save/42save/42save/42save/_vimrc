@@ -1,0 +1,3 @@
+ghlight 
+LineNr 
+guibg=grey
