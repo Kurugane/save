@@ -5,6 +5,23 @@ void	ft_putchar(char c)
 	write (1, &c, 1);
 }
 
+void	ft_putchars(c, d, u)
+{
+	if (c = 7)
+	{
+		ft_putchar(c);
+		ft_putchar(d);
+		ft_putchar(u);
+	}
+	else
+	{
+		ft_putchar(c);
+		ft_putchar(d);
+		ft_putchar(u);
+		ft_putchar(',')
+		ft_pucthar(' ')
+	}
+
 void 	ft_print_comb(void)
 {
 	char c;
@@ -19,11 +36,7 @@ void 	ft_print_comb(void)
 			u = d + 1;
 			while (u <= '9')
 			{
-				ft_putchar(c);
-				ft_putchar(d);
-				ft_putchar(u);
-				ft_putchar(',');
-				ft_putchar(' ');
+				ft_putchars(c, d, u);
 				u++;
 			}
 			d++;
