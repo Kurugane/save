@@ -6,7 +6,7 @@
 /*   By: ymahade <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/08/17 01:22:29 by ymahade           #+#    #+#             */
-/*   Updated: 2016/08/17 01:24:09 by ymahade          ###   ########.fr       */
+/*   Updated: 2016/08/21 15:00:15 by ymahade          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,4 +21,3 @@ int	ft_recursive_power(int nb, int power)
 	else
 		return (nb * ft_recursive_power(nb, power - 1));
 }
-

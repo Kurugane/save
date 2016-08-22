@@ -1,26 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_iterative_power.c                               :+:      :+:    :+:   */
+/*   ft_putstr.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ymahade <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2016/08/21 14:57:11 by ymahade           #+#    #+#             */
-/*   Updated: 2016/08/21 14:59:50 by ymahade          ###   ########.fr       */
+/*   Created: 2016/08/22 19:34:22 by ymahade           #+#    #+#             */
+/*   Updated: 2016/08/22 19:38:11 by ymahade          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-int	ft_iterative_power(int nb, int power)
-{
-	int res;
+int		ft_putchar (char c);
 
-	res = 1;
-	if (power < 0)
-		return (0);
-	while (power >= 1)
+void	ft_putstr(char *str)
+{
+	int i;
+
+	i = 0;
+	while (str[i])
 	{
-		res *= nb;
-		power--;
+		ft_putchar(str[i]);
+		i++;
 	}
-	return (res);
 }
