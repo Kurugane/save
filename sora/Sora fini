@@ -1,0 +1,313 @@
+#include <uvsqgraphics.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+int vies = 3;
+int mort = 0;
+int score = 0;
+
+/*
+
+
+
+*/
+
+#define HF HAUTEUR_FENETRE
+#define BRIQUES    (50)
+#define LIGNE      (7)
+#define SCALE      (2)
+
+typedef struct balle BALLE;
+struct balle 
+{
+    POINT centre;
+    int rayon;
+    int dx, dy;
+    int R,V,B;
+  
+};
+
+typedef struct s_block BLOCK;
+struct    s_block
+{
+    POINT      bg;
+    POINT      hd;
+    COULEUR    color;    
+};
+ 
+
+BALLE    init_balle(void)         
+{
+    return ((BALLE){.centre.x = 300, .centre.y = 25, .rayon = 10,
+                     .dx = -1, .dy = 2,
+                     .R = 0, .V = 0xFF, .B = 0});
+}
+  
+
+
+void dessiner_block(BLOCK raq)
+{
+    raq.bg.x = (raq.bg.x < 202 ? 202 : raq.bg.x);
+    raq.hd.x = (raq.hd.x < 202 ? 202 : raq.hd.x);
+    raq.bg.x = (raq.bg.x > 799 ? 799 : raq.bg.x);
+    raq.hd.x = (raq.hd.x > 799 ? 799 : raq.hd.x);
+    draw_fill_rectangle(raq.bg,raq.hd,raq.color);
+}
+  
+void effacer_block(BLOCK raq)
+{
+    raq.bg.x = (raq.bg.x < 202 ? 202 : raq.bg.x);
+    raq.hd.x = (raq.hd.x < 202 ? 202 : raq.hd.x);
+    raq.bg.x = (raq.bg.x > 799 ? 799 : raq.bg.x);
+    raq.hd.x = (raq.hd.x > 799 ? 799 : raq.hd.x);
+    draw_fill_rectangle(raq.bg,raq.hd,noir);
+}
+
+// Rebond d'une balle sur le bord                                                        
+
+int       rebond_block(BALLE *B, BLOCK block)
+{
+    if (!(block.bg.y <= B->centre.y + B->dy + B->rayon && block.hd.y >= B->centre.y + B->dy - B->rayon &&
+        block.bg.x <= B->centre.x + B->dx + B->rayon && block.hd.x >= B->centre.x + B->dx - B->rayon))
+        return (0);
+    if (block.bg.y < B->centre.y + B->rayon && block.hd.y > B->centre.y - B->rayon)
+        B->dx *= -1;
+    if (block.bg.x < B->centre.x + B->rayon && block.hd.x > B->centre.x - B->rayon)
+        B->dy *= -1;
+    return (1);
+}
+
+
+BALLE    rebond_bord(BALLE B)
+{
+    B.centre.x += B.dx;
+    B.centre.y += B.dy;
+    if ((B.centre.x - B.rayon <  202) && (B.dx < 0))     //gauche fenetre
+        B.dx = -B.dx;
+    else if ((B.centre.x + B.rayon > 800) && (B.dx > 0))    //droite fenetre
+        B.dx = -B.dx;
+    else if ((B.centre.y + B.rayon >HF) && (B.dy > 0))    //haut fenetre
+        B.dy = -B.dy;
+    else if ((B.centre.y + B.rayon < 0) && (B.dy < 0))
+        mort = 1;
+    return B;
+}
+
+  
+// Déplacement d'une balle
+BALLE    deplace_balle(BALLE B, BLOCK raq, BLOCK bric[BRIQUES], int vivant[BRIQUES]) 
+{
+    int    dx;
+    int    dy;
+    int    i;
+    
+    i = 0;
+    dx = B.dx;
+    dy = B.dy;
+    rebond_block(&B, raq);
+    while (i < BRIQUES)
+    {
+        if (vivant[i])
+            if (rebond_block(&B, bric[i]))
+            {
+                vivant[i] = 0;
+                score += 10 + 10 * i / LIGNE;
+                effacer_block(bric[i]);
+            }
+        i++;
+    }
+    B = rebond_bord(B);
+    B.centre.x += dx;
+    B.centre.y += dy;
+    return B;
+}
+  
+// Effacement d'une balle
+void efface_balle(BALLE B) 
+{
+  draw_fill_circle(B.centre,B.rayon,noir); 
+}
+  
+  
+// Affichage d'un balle avec effet d'éclairage
+void affiche_balle(BALLE B) 
+{
+    int r,v,b,i;
+    int nb_step;
+    int dr,dv,db,dra;
+    POINT P;
+    int R;
+    COULEUR C;
+      
+    nb_step = B.rayon*0.5;
+    dr = (255-B.R)/nb_step;
+    dv = (255-B.V)/nb_step;
+    db = (255-B.B)/nb_step;
+    dra = B.rayon/nb_step;
+      
+    for (i=0 ; i<nb_step ; i++) 
+    {
+        r = B.R + dr*i;
+        v = B.V + dv*i;
+        b = B.B + db*i;
+        P.x = B.centre.x + i;
+        P.y = B.centre.y + i;
+        R = B.rayon - dra*i;
+        C = couleur_RGB(38,196,236);
+        draw_fill_circle(P,R,C);
+    }
+}
+  
+  
+void dessiner_ligne (void)
+{
+    POINT P1, P2;
+       
+    P2.x = 200; P2.y = 0;
+    P1.x = 200; P1.y = 700;
+    draw_line(P1,P2,blanc);
+     
+}
+ 
+
+//Dessiner une raquette
+
+  
+//raquette initialisation
+BLOCK init_raquette (void)
+{
+    BLOCK raq={{250,0},{350,15},blanc};
+      
+    draw_fill_rectangle(raq.bg,raq.hd,raq.color);
+      
+    return raq;
+      
+}
+  
+BLOCK deplacer_raquette (BLOCK raq)
+{
+      
+    POINT    deplacement;
+
+    effacer_block(raq);
+    deplacement=get_arrow();
+    raq.bg.x += deplacement.x;
+    raq.hd.x += deplacement.x;
+    dessiner_block(raq);
+    return raq;
+}
+
+
+
+char    *itoa(int n)
+{
+    static char    tmp[12];
+    int            i;
+    int x;
+    i = 10;
+    tmp[11] = '\0';
+    for (x = 0; x < 11; x++)
+        tmp[x] = '0';
+    while (n)
+    {
+        if ((tmp[i] = n % 10) < 0)
+        {
+            tmp[i] = -tmp[i];
+            tmp[i - 1] = '-';
+        }
+        tmp[i] += '0';
+        n /= 10;
+        i--;
+    }
+    if (tmp[i] == '-' || i == 10)
+        i--;
+    return (&tmp[i + 1]);
+}
+
+int    main(void) 
+{
+
+    
+    BLOCK    bric[BRIQUES];
+    int      vivant[BRIQUES];
+    int      i = 0;
+    BALLE    B;
+    BLOCK    raq;
+    init_graphics (800,700);
+    
+    while(i < BRIQUES)
+    {                        
+        bric[i] = (BLOCK){{200 + (600 % LIGNE) / 2 + 600 / LIGNE * (i % LIGNE) + SCALE, 500 + 35 * (i / LIGNE)},
+                          {200 + (600 % LIGNE) / 2 + 600 / LIGNE * ((i % LIGNE) + 1) - SCALE, 530 + 35 * (i / LIGNE)},
+                          green + i * 20};
+        vivant[i] = 1;
+        dessiner_block(bric[i]);
+        i++;
+    }
+    raq=init_raquette();
+    dessiner_ligne ();
+    B = init_balle();
+
+ //règles
+    write_text("Commande:"); write_ln(); 
+    write_text("fleche gauche"); write_ln(); write_text("fleche droite"); write_ln();
+    write_ln(); 
+    write_text("Attention a ne"); write_ln(); 
+    write_text("pas toucher les"); write_ln();
+    write_text("lignes rouges"); write_ln();
+    write_ln();
+    write_ln();
+    write_ln();
+    
+    
+    write_text("Tu as 3 vies"); write_ln();
+    
+    while(vies > 0)
+    {
+
+        // On affiche
+        affiche_balle(B);
+
+        affiche_all();
+
+        // On efface
+        efface_balle(B);
+
+        // On modifie
+        B = deplace_balle(B, raq, bric, vivant);
+
+        // On déplace la raquette
+        raq=deplacer_raquette (raq);
+
+
+        if(mort == 1 && vies == 3)
+        {
+            B = init_balle();
+            write_text("Plus que 2 vies"); write_ln();
+            mort = 0;
+            vies--;
+        }
+        if(mort == 1 && vies == 2)
+        {
+            B = init_balle();
+            write_text("Attention 1 vie"); write_ln();
+            mort = 0;
+            vies--;
+        }
+        if(mort == 1 && vies == 1)
+        {
+            vies--;
+            char    *str;
+            str = itoa(score);
+            write_text("Score : ");
+            write_text(str);
+            write_ln();
+            //fin jeux
+            wait_escape();
+        }
+    }
+    write_text("Perdu"); write_ln();
+    //fin jeux
+    wait_escape();
+    return (0);
+}
