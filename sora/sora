@@ -1,0 +1,395 @@
+#include <uvsqgraphics.h>
+  
+POINT hdd,bgg;
+int vies=3;
+  
+  
+// ############################
+// 1. Les structures de donnÃ©es
+// ############################
+#define HF HAUTEUR_FENETRE
+  
+  
+typedef struct raquette RAQUETTE;
+struct raquette
+{
+    POINT bg;
+    POINT hd;
+    COULEUR coul;
+};
+  
+  
+// Pour stocker une balle
+typedef struct balle BALLE;
+struct balle 
+{
+    POINT centre;
+    int rayon;
+    int dx, dy;
+    int R,V,B;
+  
+};
+ 
+typedef struct brique BRIQUE; 
+struct brique
+{
+    POINT bgg;
+    POINT hdd;
+    COULEUR coull;
+};
+ 
+  
+BALLE init_balle (void) 
+{
+    BALLE B;
+  
+        B.centre.x = 300; 
+        B.centre.y = 25; 
+        B.dx = -1; B.dy =  2; 
+        B.R=B.B=0; 
+        B.V=255; 
+        B.rayon = 10; 
+      
+      
+    return B;
+}
+  
+  
+// Rebond d'une balle sur le bord
+    BALLE rebond_bord(BALLE B, RAQUETTE raq, BRIQUE bric)
+{
+    //gauche
+    if ((B.centre.x - B.rayon <  202) && (B.dx<0)) B.dx = -B.dx;
+      
+    //droite
+    if ((B.centre.x + B.rayon > 800) && (B.dx>0)) B.dx = -B.dx;
+      
+    //bas 
+    //if ((B.centre.y - B.rayon < 0) && (B.dy<0)) B.dy = -B.dy;
+      
+    //haut
+    if ((B.centre.y + B.rayon >HF) && (B.dy>0)) B.dy = -B.dy;
+      
+      
+      
+    //rebond sur la raquette
+    if (    (B.centre.y-raq.hd.y<=B.rayon)   &&   (raq.bg.x-B.centre.x<=B.rayon)  &&   (B.centre.x-raq.hd.x<=B.rayon) ) 
+    {
+    B.dy = -B.dy;
+    }
+    
+
+    
+    //rebond sur la brique
+    if (    (B.centre.y-bric.hdd.y<=B.rayon)   &&   (bric.bgg.x-B.centre.x<=B.rayon)  &&   (B.centre.x-bric.hdd.x<=B.rayon) ) 
+    {
+    B.dy = -B.dy;
+    
+    BRIQUE bric={{500,450},{550,600},noir};
+    draw_fill_rectangle(bric.bgg,bric.hdd,bric.coull);
+    }
+      
+    
+ //gestion vie
+    else if( B.centre.y<=(B.rayon) &&(B.centre.y-(raq.bg.y+100)<=B.rayon)&&(B.centre.y-raq.hd.y<=B.rayon  ))
+    {
+          
+        vies=vies-1;
+ 
+    }
+    
+      
+  
+    return B;
+}
+  
+  
+  
+  
+  
+// Déplacement d'une balle
+BALLE deplace_balle(BALLE B, RAQUETTE raq, BRIQUE bric) 
+{
+    B.centre.x += B.dx;
+    B.centre.y += B.dy;
+    B = rebond_bord(B,raq,bric);
+    return B;
+}
+  
+// Effacement d'une balle
+void efface_balle(BALLE B) 
+{
+  draw_fill_circle(B.centre,B.rayon,noir); 
+}
+  
+  
+// Affichage d'un balle avec effet d'éclairage
+void affiche_balle(BALLE B) 
+{
+    int r,v,b,i;
+    int nb_step;
+    int dr,dv,db,dra;
+    POINT P;
+    int R;
+    COULEUR C;
+      
+    nb_step = B.rayon*0.5;
+    dr = (255-B.R)/nb_step;
+    dv = (255-B.V)/nb_step;
+    db = (255-B.B)/nb_step;
+    dra = B.rayon/nb_step;
+      
+    for (i=0 ; i<nb_step ; i++) 
+    {
+        r = B.R + dr*i;
+        v = B.V + dv*i;
+        b = B.B + db*i;
+        P.x = B.centre.x + i;
+        P.y = B.centre.y + i;
+        R = B.rayon - dra*i;
+        C = couleur_RGB(38,196,236);
+        draw_fill_circle(P,R,C);
+    }
+}
+  
+  
+void dessiner_ligne (void)
+{
+    POINT P1, P2;
+       
+    P2.x = 200; P2.y = 0;
+    P1.x = 200; P1.y = 700;
+    draw_line(P1,P2,blanc);
+     
+}
+ 
+
+//Dessiner une raquette
+void dessiner_raquette(RAQUETTE raq)
+{
+    draw_fill_rectangle(raq.bg,raq.hd,raq.coul);
+}
+  
+void effacer_raquette(RAQUETTE raq)
+{
+    draw_fill_rectangle(raq.bg,raq.hd,noir);
+}
+  
+//raquette initialisation
+RAQUETTE init_raquette (void)
+{
+    RAQUETTE raq={{250,0},{350,15},blanc};
+      
+    draw_fill_rectangle(raq.bg,raq.hd,raq.coul);
+      
+    return raq;
+      
+}
+  
+RAQUETTE deplacer_raquette (RAQUETTE raq)
+{
+      
+    POINT deplacement;
+      
+      
+    dessiner_raquette(raq);
+      
+          
+    deplacement=get_arrow();
+          
+      
+    if (deplacement.x !=0 && raq.bg.x>=202 && raq.hd.x<=799 )
+        {
+      
+          
+        if(raq.bg.x>=202 && raq.hd.x<=799 )
+         
+        {
+        effacer_raquette(raq);
+                  
+        raq.bg.x=raq.bg.x+deplacement.x;
+        raq.hd.x=raq.hd.x+deplacement.x;
+      
+        dessiner_raquette(raq);
+        }
+          
+        }
+      
+      
+          
+    if(raq.bg.x<=202)
+        {
+              
+        effacer_raquette(raq);
+          
+        raq.bg.x=raq.bg.x+1;
+          
+        dessiner_raquette(raq);
+          
+        }
+          
+      
+          
+    if(raq.hd.x>=799)
+        {
+              
+        effacer_raquette(raq);
+          
+        raq.hd.x=raq.hd.x-1;
+          
+        dessiner_raquette(raq);
+          
+        }
+  
+    
+        return raq;
+        
+}
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ //init brique
+ BRIQUE init_brique (void)
+{
+    BRIQUE bric={{550,450},{600,600},green};
+      
+    draw_fill_rectangle(bric.bgg,bric.hdd,bric.coull);
+      
+    return bric;
+      
+}
+
+
+ //déplacer brique
+ BRIQUE init_brique3 (void)
+{
+
+    
+    BRIQUE bric={{1000,1050},{1550,1600},green};
+      
+    draw_fill_rectangle(bric.bgg,bric.hdd,bric.coull);
+    
+    
+}
+int main () 
+{
+
+    
+    BRIQUE bric;
+    BALLE B;
+    RAQUETTE raq;
+    init_graphics (800,700);
+    
+    bric=init_brique();
+ 
+      
+    raq=init_raquette();
+  
+    dessiner_ligne ();
+     
+    
+    B = init_balle();
+
+ //règles
+    write_text("Commande:"); write_ln(); 
+    write_text("fleche gauche"); write_ln(); write_text("fleche droite"); write_ln();
+    write_ln(); 
+    write_text("Attention a ne"); write_ln(); 
+    write_text("pas toucher les"); write_ln();
+    write_text("lignes rouges"); write_ln();
+    write_ln();
+    write_ln();
+    write_ln();
+    
+    
+    write_text("Tu as 3 vies"); write_ln();
+    
+    while(1)
+    {
+     
+  // On affiche
+  affiche_balle(B);
+          
+  affiche_all();
+  
+  // On efface
+  efface_balle(B);
+         
+  // On modifie
+  B = deplace_balle(B,raq,bric);
+  
+  // On déplace la raquette
+  raq=deplacer_raquette (raq);
+   
+  //déplacement de la brique (!)
+  if (    (B.centre.y-bric.hdd.y<=B.rayon)   &&   (bric.bgg.x-B.centre.x<=B.rayon)  &&   (B.centre.x-bric.hdd.x<=B.rayon) ) 
+  {
+   BRIQUE bric={{200,200},{250,200},noir};
+   draw_fill_rectangle(bric.bgg,bric.hdd,bric.coull);
+  }
+          
+        
+  if(vies==2)
+  {
+   B = init_balle();
+   write_text("Plus que 2 vies"); write_ln();
+   
+   while(1)
+   {
+    // On affiche
+    affiche_balle(B);
+          
+    affiche_all();
+  
+    // On efface
+    efface_balle(B);
+          
+    // On modifie
+    B = deplace_balle(B,raq,bric);
+  
+    // On déplace la raquette
+    raq=deplacer_raquette (raq);
+    
+    
+    if(vies==1)
+    {
+     B = init_balle();
+     write_text("Attention 1 vie"); write_ln();
+     
+     while(1)
+     {
+      // On affiche
+      affiche_balle(B);
+           efface_balle(B);
+          
+      // On modifie
+      B = deplace_balle(B,raq,bric);
+  
+      // On déplace la raquette
+      raq=deplacer_raquette (raq);
+      
+      
+      if(vies==0)
+      {
+       write_text("Perdu"); write_ln();
+       //fin jeux
+       wait_escape();
+      }
+      
+      
+     }
+    }
+    
+   }
+  } 
+   
+ }
+  
+    
+    exit(0);
+}
